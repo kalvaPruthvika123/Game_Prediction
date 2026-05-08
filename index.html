@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Player Engagement Prediction</title>
+  <style>
+    body { font-family: Arial, sans-serif; margin: 0; padding: 0; background: #f2f6fb; color: #1f2937; }
+    header { background: #1f4ed8; color: white; padding: 24px; text-align: center; }
+    main { max-width: 960px; margin: 24px auto; padding: 0 16px; }
+    .card { background: white; border-radius: 16px; box-shadow: 0 6px 28px rgba(15, 23, 42, 0.08); padding: 24px; margin-bottom: 24px; }
+    .grid { display: grid; gap: 18px; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); }
+    label { display: block; margin-bottom: 8px; font-weight: 600; }
+    select, input[type=number] { width: 100%; padding: 10px 12px; border: 1px solid #cbd5e1; border-radius: 12px; }
+    button { background: #2563eb; color: white; border: none; border-radius: 12px; padding: 14px 20px; cursor: pointer; font-size: 16px; }
+    button:hover { background: #1d4ed8; }
+    .result { margin-top: 18px; padding: 18px; border-radius: 14px; background: #eef2ff; }
+    .result h3 { margin-top: 0; }
+    .note { color: #475569; font-size: 0.95rem; margin-top: 8px; }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>Player Engagement Prediction</h1>
+    <p>Use the form to predict whether a player will have Low, Medium, or High engagement.</p>
+  </header>
+  <main>
+    <div class="card">
+      <form id="prediction-form">
+        <div class="grid">
+          <div>
+            <label for="age">Age</label>
+            <input id="age" name="age" type="number" min="18" max="60" value="25" required />
+          </div>
+          <div>
+            <label for="gender">Gender</label>
+            <select id="gender" name="gender">
+              <option>Male</option>
+              <option>Female</option>
+            </select>
+          </div>
+          <div>
+            <label for="location">Location</label>
+            <select id="location" name="location">
+              <option>USA</option>
+              <option>Europe</option>
+              <option>Asia</option>
+              <option>Other</option>
+            </select>
+          </div>
+          <div>
+            <label for="gameGenre">Game Genre</label>
+            <select id="gameGenre" name="gameGenre">
+              <option>Strategy</option>
+              <option>Sports</option>
+              <option>Action</option>
+              <option>RPG</option>
+              <option>Simulation</option>
+            </select>
+          </div>
+          <div>
+            <label for="playTime">Play Time Hours</label>
+            <input id="playTime" name="playTime" type="number" min="0" max="50" step="0.5" value="10" required />
+          </div>
+          <div>
+            <label for="purchases">In-Game Purchases</label>
+            <input id="purchases" name="purchases" type="number" min="0" max="10" value="1" required />
+          </div>
+          <div>
+            <label for="difficulty">Game Difficulty</label>
+            <select id="difficulty" name="difficulty">
+              <option>Easy</option>
+              <option>Medium</option>
+              <option>Hard</option>
+            </select>
+          </div>
+          <div>
+            <label for="sessions">Sessions Per Week</label>
+            <input id="sessions" name="sessions" type="number" min="0" max="20" value="5" required />
+          </div>
+          <div>
+            <label for="avgDuration">Avg Session Duration Minutes</label>
+            <input id="avgDuration" name="avgDuration" type="number" min="30" max="200" value="120" required />
+          </div>
+          <div>
+            <label for="level">Player Level</label>
+            <input id="level" name="level" type="number" min="1" max="100" value="50" required />
+          </div>
+          <div>
+            <label for="achievements">Achievements Unlocked</label>
+            <input id="achievements" name="achievements" type="number" min="0" max="100" value="25" required />
+          </div>
+        </div>
+        <div style="margin-top:24px;">
+          <button type="submit">Predict Engagement</button>
+        </div>
+      </form>
+      <div id="result" class="result" style="display:none;">
+        <h3>Prediction Result</h3>
+        <p id="prediction-text"></p>
+        <ul id="probabilities"></ul>
+      </div>
+      <p class="note">This app calls the `/api/predict` function and returns an engagement level with probabilities.</p>
+    </div>
+  </main>
+  <script>
+    const form = document.getElementById('prediction-form');
+    const resultBlock = document.getElementById('result');
+    const predictionText = document.getElementById('prediction-text');
+    const probabilitiesList = document.getElementById('probabilities');
+
+    form.addEventListener('submit', async (event) => {
+      event.preventDefault();
+      resultBlock.style.display = 'none';
+      const payload = {
+        Age: Number(form.age.value),
+        Gender: form.gender.value,
+        Location: form.location.value,
+        GameGenre: form.gameGenre.value,
+        PlayTimeHours: Number(form.playTime.value),
+        InGamePurchases: Number(form.purchases.value),
+        GameDifficulty: form.difficulty.value,
+        SessionsPerWeek: Number(form.sessions.value),
+        AvgSessionDurationMinutes: Number(form.avgDuration.value),
+        PlayerLevel: Number(form.level.value),
+        AchievementsUnlocked: Number(form.achievements.value)
+      };
+
+      const response = await fetch('/api/predict', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      });
+
+      if (!response.ok) {
+        predictionText.textContent = 'Unable to predict right now. Please try again later.';
+        probabilitiesList.innerHTML = '';
+        resultBlock.style.display = 'block';
+        return;
+      }
+
+      const data = await response.json();
+      predictionText.textContent = `${data.prediction}`;
+      probabilitiesList.innerHTML = `
+        <li>Low: ${data.probabilities.Low.toFixed(4)}</li>
+        <li>Medium: ${data.probabilities.Medium.toFixed(4)}</li>
+        <li>High: ${data.probabilities.High.toFixed(4)}</li>
+      `;
+      resultBlock.style.display = 'block';
+    });
+  </script>
+</body>
+</html>

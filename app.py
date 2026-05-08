@@ -8,7 +8,6 @@ from sklearn.metrics import accuracy_score, precision_score, recall_score, f1_sc
 import matplotlib.pyplot as plt
 import seaborn as sns
 from sklearn.cluster import KMeans
-import joblib
 
 # Set page config
 st.set_page_config(page_title="Player Engagement Prediction", layout="wide")
@@ -218,7 +217,7 @@ elif option == "Visualizations":
 
     st.subheader("Engagement vs Total Play Time")
     fig, ax = plt.subplots()
-    sns.boxplot(x='EngagementLevel', y='TotalPlayTime', data=df.assign(EngagementLevel=le.inverse_transform(y)), ax=ax)
+    sns.boxplot(x='EngagementLevel', y='TotalPlayTime', data=df.assign(EngagementLevel=target_le.inverse_transform(y)), ax=ax)
     st.pyplot(fig)
 
 elif option == "Player Segmentation":
