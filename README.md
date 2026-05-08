@@ -15,7 +15,16 @@ This is a complete Machine Learning project to predict player engagement levels 
 ## How to Run
 1. Install dependencies: `pip install pandas numpy scikit-learn matplotlib seaborn streamlit`
 2. Run the main script: `python player_engagement_prediction.py`
-3. Run the app: `streamlit run app.py`
+3. Run the interactive dashboard: `streamlit run app.py`
+
+## Dashboard Features
+The Streamlit app provides an interactive dashboard with the following sections:
+- **Prediction Tool**: Input player features and get engagement predictions
+- **Data Overview**: Explore dataset statistics, distributions, and summaries
+- **Model Performance**: View accuracy metrics and confusion matrix
+- **Feature Importance**: See which features most influence predictions
+- **Visualizations**: Interactive charts for data insights
+- **Player Segmentation**: Clustering analysis of player groups
 
 ## Steps Covered
 1. Data Understanding
