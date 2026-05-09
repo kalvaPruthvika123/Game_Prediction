@@ -1,7 +1,8 @@
+import os
+
 import streamlit as st
 import pandas as pd
 import numpy as np
-from pathlib import Path
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import LabelEncoder
 from sklearn.ensemble import RandomForestClassifier
@@ -16,7 +17,11 @@ st.set_page_config(page_title="Player Engagement Prediction", layout="wide")
 # Load and preprocess data
 @st.cache_data
 def load_data():
-    dataset_path = Path(__file__).resolve().parent / 'keerthi_dataset.csv'
+    dataset_path = os.path.join(os.path.dirname(__file__), 'keerthi_dataset.csv')
+    if not os.path.exists(dataset_path):
+        st.error(f"Dataset file not found: {dataset_path}")
+        st.stop()
+
     df = pd.read_csv(dataset_path)
     gender_le = LabelEncoder()
     difficulty_le = LabelEncoder()
