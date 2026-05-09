@@ -1,6 +1,7 @@
 import streamlit as st
 import pandas as pd
 import numpy as np
+from pathlib import Path
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import LabelEncoder
 from sklearn.ensemble import RandomForestClassifier
@@ -15,7 +16,8 @@ st.set_page_config(page_title="Player Engagement Prediction", layout="wide")
 # Load and preprocess data
 @st.cache_data
 def load_data():
-    df = pd.read_csv('keerthi_dataset.csv')
+    dataset_path = Path(__file__).resolve().parent / 'keerthi_dataset.csv'
+    df = pd.read_csv(dataset_path)
     gender_le = LabelEncoder()
     difficulty_le = LabelEncoder()
     target_le = LabelEncoder()
@@ -145,15 +147,15 @@ if option == "Prediction Tool":
 
     with col2:
         st.subheader("Prediction Result")
-        if st.button("Predict Engagement", type="primary"):
+        if st.button("Predict Engagement"):
             pred = rf.predict(input_df)[0]
             prob = rf.predict_proba(input_df)[0]
-            engagement = ['Low', 'Medium', 'High'][pred]
-            st.success(f"Predicted Engagement Level: **{engagement}**")
+            engagement_label = target_le.inverse_transform([pred])[0]
+            probability_labels = target_le.classes_
+            st.success(f"Predicted Engagement Level: **{engagement_label}**")
             st.write("### Probabilities:")
-            st.write(f"Low: {prob[0]:.4f}")
-            st.write(f"Medium: {prob[1]:.4f}")
-            st.write(f"High: {prob[2]:.4f}")
+            for label, value in zip(probability_labels, prob):
+                st.write(f"{label}: {value:.4f}")
 
 elif option == "Data Overview":
     st.header("Data Overview")
