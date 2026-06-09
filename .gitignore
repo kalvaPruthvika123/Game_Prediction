@@ -1,0 +1,16 @@
+# Ignore Python virtual environment
+env/
+
+# Ignore Python cache and compiled files
+__pycache__/
+*.pyc
+
+# Ignore VS Code settings
+.vscode/
+
+# Ignore local environment files
+.env
+
+# Keep datasets, source code, and requirements tracked
+!keerthi_dataset.csv
+!requirements.txt

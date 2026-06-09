@@ -13,9 +13,26 @@ This is a complete Machine Learning project to predict player engagement levels 
 - `keerthi_dataset.csv`: Dataset
 
 ## How to Run
-1. Install dependencies for local Python scripts: `pip install pandas numpy scikit-learn matplotlib seaborn streamlit`
-2. Run the main script: `python player_engagement_prediction.py`
-3. Run the interactive dashboard locally: `streamlit run app.py`
+1. Create a virtual environment:
+   ```bash
+   python -m venv venv
+   ```
+2. Activate the virtual environment:
+   ```bash
+   venv\Scripts\activate
+   ```
+3. Install dependencies:
+   ```bash
+   pip install -r requirements.txt
+   ```
+4. Run the main ML script:
+   ```bash
+   python player_engagement_prediction.py
+   ```
+5. Run the Streamlit dashboard:
+   ```bash
+   streamlit run app.py
+   ```
 
 ## Vercel Deployment
 This project also includes a Vercel-ready frontend and API.
@@ -25,14 +42,32 @@ This project also includes a Vercel-ready frontend and API.
 - `vercel.json` configures the Python runtime.
 
 ### Deploy to Vercel
-1. Install the Vercel CLI: `npm install -g vercel`
-2. Log in: `vercel login`
-3. Deploy: `vercel`
+1. Install the Vercel CLI:
+   ```bash
+   npm install -g vercel
+   ```
+2. Log in to Vercel:
+   ```bash
+   vercel login
+   ```
+3. Deploy the project:
+   ```bash
+   vercel
+   ```
 
 ### Run locally with Vercel Dev
-1. Install the Vercel CLI
-2. Run: `vercel dev`
-3. Open: `http://localhost:3000`
+1. Install dependencies:
+   ```bash
+   pip install -r requirements.txt
+   ```
+2. Start Vercel local dev server:
+   ```bash
+   vercel dev
+   ```
+3. Open this URL in your browser:
+   ```text
+   http://localhost:3000
+   ```
 
 ## Dashboard Features
 The UI provides a lightweight browser form for player engagement prediction, then shows:

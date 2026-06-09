@@ -224,7 +224,8 @@ elif option == "Visualizations":
 
     st.subheader("Engagement vs Total Play Time")
     fig, ax = plt.subplots()
-    sns.boxplot(x='EngagementLevel', y='TotalPlayTime', data=df.assign(EngagementLevel=target_le.inverse_transform(y)), ax=ax)
+    plot_df = X.assign(EngagementLevel=target_le.inverse_transform(y))
+    sns.boxplot(x='EngagementLevel', y='TotalPlayTime', data=plot_df, ax=ax)
     st.pyplot(fig)
 
 elif option == "Player Segmentation":

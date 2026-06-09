@@ -1,14 +1,16 @@
 import json
+import os
+from http.server import BaseHTTPRequestHandler
+
 import pandas as pd
 import numpy as np
 from sklearn.preprocessing import LabelEncoder
 from sklearn.ensemble import RandomForestClassifier
 
-LABELS = ['Low', 'Medium', 'High']
-
 
 def load_model():
-    df = pd.read_csv('keerthi_dataset.csv')
+    dataset_path = os.path.join(os.path.dirname(os.path.dirname(__file__)), 'keerthi_dataset.csv')
+    df = pd.read_csv(dataset_path)
     gender_le = LabelEncoder()
     difficulty_le = LabelEncoder()
     target_le = LabelEncoder()
@@ -66,31 +68,39 @@ def preprocess_input(body):
     return input_df
 
 
-def handler(request):
-    try:
-        body = request.get_json(force=True)
-    except Exception:
-        return {
-            'statusCode': 400,
-            'body': json.dumps({'error': 'Invalid JSON payload'}),
-            'headers': {'Content-Type': 'application/json'}
-        }
-
+def predict_payload(body):
     input_df = preprocess_input(body)
     prediction = MODEL.predict(input_df)[0]
     probabilities = MODEL.predict_proba(input_df)[0].tolist()
+    labels = TARGET_LE.classes_.tolist()
 
     return {
-        'statusCode': 200,
-        'body': json.dumps({
-            'prediction': LABELS[prediction],
-            'probabilities': {
-                'Low': probabilities[0],
-                'Medium': probabilities[1],
-                'High': probabilities[2]
-            }
-        }),
-        'headers': {
-            'Content-Type': 'application/json'
-        }
+        'prediction': TARGET_LE.inverse_transform([prediction])[0],
+        'probabilities': dict(zip(labels, probabilities))
     }
+
+
+class handler(BaseHTTPRequestHandler):
+    def _send_json(self, status_code, payload):
+        body = json.dumps(payload).encode('utf-8')
+        self.send_response(status_code)
+        self.send_header('Content-Type', 'application/json')
+        self.send_header('Access-Control-Allow-Origin', '*')
+        self.send_header('Access-Control-Allow-Headers', 'Content-Type')
+        self.send_header('Access-Control-Allow-Methods', 'POST, OPTIONS')
+        self.end_headers()
+        self.wfile.write(body)
+
+    def do_OPTIONS(self):
+        self._send_json(200, {})
+
+    def do_POST(self):
+        try:
+            content_length = int(self.headers.get('Content-Length', 0))
+            raw_body = self.rfile.read(content_length).decode('utf-8')
+            body = json.loads(raw_body) if raw_body else {}
+        except (TypeError, ValueError, json.JSONDecodeError):
+            self._send_json(400, {'error': 'Invalid JSON payload'})
+            return
+
+        self._send_json(200, predict_payload(body))

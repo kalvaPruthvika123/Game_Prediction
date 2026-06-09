@@ -4,10 +4,11 @@
 import pandas as pd
 import numpy as np
 from sklearn.model_selection import train_test_split
-from sklearn.preprocessing import LabelEncoder, OneHotEncoder
+from sklearn.preprocessing import LabelEncoder, StandardScaler
 from sklearn.linear_model import LogisticRegression
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.metrics import accuracy_score, precision_score, recall_score, f1_score, confusion_matrix
+from sklearn.pipeline import make_pipeline
 import matplotlib.pyplot as plt
 import seaborn as sns
 
@@ -49,9 +50,11 @@ print(f"\nDistribution of EngagementLevel:\n{df['EngagementLevel'].value_counts(
 # GameGenre: Strategy, Sports, Action, RPG, Simulation - OneHot
 # GameDifficulty: Easy, Medium, Hard - Label Encoding (ordinal)
 
-le = LabelEncoder()
-df['Gender'] = le.fit_transform(df['Gender'])
-df['GameDifficulty'] = le.fit_transform(df['GameDifficulty'])  # Easy=0, Medium=1, Hard=2
+gender_le = LabelEncoder()
+difficulty_le = LabelEncoder()
+target_le = LabelEncoder()
+df['Gender'] = gender_le.fit_transform(df['Gender'])
+df['GameDifficulty'] = difficulty_le.fit_transform(df['GameDifficulty'])  # Easy=0, Medium=1, Hard=2
 
 # OneHot for Location and GameGenre
 df = pd.get_dummies(df, columns=['Location', 'GameGenre'], drop_first=True)
@@ -61,7 +64,7 @@ X = df.drop(['PlayerID', 'EngagementLevel'], axis=1)
 y = df['EngagementLevel']
 
 # Encode target
-y = le.fit_transform(y)  # Low=0, Medium=1, High=2
+y = target_le.fit_transform(y)
 
 # 3. FEATURE ENGINEERING
 
@@ -88,7 +91,7 @@ X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_
 # 5. MODEL BUILDING
 
 # Logistic Regression (baseline)
-lr = LogisticRegression(max_iter=1000)
+lr = make_pipeline(StandardScaler(), LogisticRegression(max_iter=5000))
 lr.fit(X_train, y_train)
 
 # Random Forest
@@ -158,8 +161,8 @@ def predict_engagement(user_input):
     # user_input should be a dict with keys matching X columns
     input_df = pd.DataFrame([user_input])
     # Apply same preprocessing
-    input_df['Gender'] = le.transform(input_df['Gender'])
-    input_df['GameDifficulty'] = le.transform(input_df['GameDifficulty'])
+    input_df['Gender'] = gender_le.transform(input_df['Gender'])
+    input_df['GameDifficulty'] = difficulty_le.transform(input_df['GameDifficulty'])
     input_df = pd.get_dummies(input_df, columns=['Location', 'GameGenre'], drop_first=True)
     # Ensure same columns as X
     for col in X.columns:
@@ -171,12 +174,17 @@ def predict_engagement(user_input):
     input_df['AchievementRate'] = input_df['AchievementsUnlocked'] / input_df['PlayerLevel']
     input_df['SpendingRate'] = input_df['InGamePurchases'] / input_df['SessionsPerWeek']
     input_df['AchievementRate'] = input_df['AchievementRate'].replace([np.inf, -np.inf], 0)
+    input_df['SpendingRate'] = input_df['SpendingRate'].replace([np.inf, -np.inf], 0)
+    input_df = input_df.fillna(0)
     # Predict
     pred = rf.predict(input_df)[0]
     prob = rf.predict_proba(input_df)[0]
-    engagement = ['Low', 'Medium', 'High'][pred]
+    engagement = target_le.inverse_transform([pred])[0]
     print(f"Predicted Engagement: {engagement}")
-    print(f"Probabilities: Low: {prob[0]:.4f}, Medium: {prob[1]:.4f}, High: {prob[2]:.4f}")
+    probability_text = ', '.join(
+        f"{label}: {value:.4f}" for label, value in zip(target_le.classes_, prob)
+    )
+    print(f"Probabilities: {probability_text}")
 
 # Example usage
 # predict_engagement({'Age': 25, 'Gender': 'Male', 'Location': 'USA', 'GameGenre': 'Action', 'PlayTimeHours': 10, 'InGamePurchases': 5, 'GameDifficulty': 'Medium', 'SessionsPerWeek': 5, 'AvgSessionDurationMinutes': 120, 'PlayerLevel': 50, 'AchievementsUnlocked': 30})
